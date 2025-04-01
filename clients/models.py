@@ -4,7 +4,28 @@ from django.contrib.auth.models import (
     AbstractBaseUser, 
     BaseUserManager, 
     PermissionsMixin,
+    Group,
+    Permission,
 )
+
+
+class ClientManager(BaseUserManager):
+    def create_superuser(
+        self, 
+        username: str, 
+        email: str,
+        password: str,
+    ) -> "Client":
+        """Create super user."""
+        client: Client = Client()
+        client.email=self.normalize_email(email=email)
+        client.username=username
+        client.set_password(raw_password=password)
+        client.is_active=True
+        client.is_staff=True
+        client.is_superuser=True
+        client.save()
+        return client
 
 
 class Client(AbstractBaseUser, PermissionsMixin):
@@ -26,6 +47,7 @@ class Client(AbstractBaseUser, PermissionsMixin):
     birthday = models.DateField(
         verbose_name="дата рождения",
         blank=True,
+        null=True,
     )
     email = models.EmailField(
         verbose_name="эл. почта",
@@ -48,13 +70,34 @@ class Client(AbstractBaseUser, PermissionsMixin):
     gender = models.CharField(
         verbose_name="пол",
         blank=True,
+        null=True,
+        max_length=10,
     )
     date_created = models.DateTimeField(
         verbose_name="дата создания",
         default=timezone.now,
     )
+    groups = models.ManyToManyField(
+        to=Group,
+        verbose_name="группы",
+        blank=True,
+        related_name="clients_group",
+    )
+    user_permissions = models.ManyToManyField(
+        to=Permission,
+        verbose_name="разрешения",
+        blank=True,
+        related_name="clients_permissions",
+    )
+
+    REQUIRED_FIELDS = ["email"]
+    USERNAME_FIELD = "username"
+    objects = ClientManager()
 
     class Meta:
         ordering = ("id",)
         verbose_name = "клиент"
         verbose_name_plural = "клиенты"
+
+    def __str__(self):
+        return f"{self.username} | {self.email} | {self.date_created}"
