@@ -7,6 +7,12 @@ from django.contrib.auth.models import (
     Group,
     Permission,
 )
+from .validators import(
+    validate_username,
+    validate_password,
+    domain_check
+)
+from django.core.exceptions import ValidationError
 
 
 class ClientManager(BaseUserManager):
@@ -17,6 +23,13 @@ class ClientManager(BaseUserManager):
         password: str,
     ) -> "Client":
         """Create super user."""
+        try:
+            validate_username(username)
+            validate_password(password)
+            domain_check(email)
+        except ValidationError as e:
+            raise ValidationError(f"Ошибка валидации: {', '.join(e.messages)}")
+        
         client: Client = Client()
         client.email=self.normalize_email(email=email)
         client.username=username
