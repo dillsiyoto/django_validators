@@ -28,6 +28,7 @@ AUTH_USER_MODEL = "clients.Client"
 # Application definition
 
 INSTALLED_APPS = [
+    "comments.apps.CommentsConfig",
     "clients.apps.ClientsConfig",
     "django.contrib.admin",
     "django.contrib.auth",
